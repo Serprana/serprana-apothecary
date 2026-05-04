@@ -1,6 +1,6 @@
 # 🌿 Serprana Apothecary — Setup Guide
 
-Welcome! This is your complete apothecary web app. Follow these steps to get it live.
+Welcome! This is your complete apothecary web app. Follow these steps to get it live
 
 ---
 
