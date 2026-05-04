@@ -1,0 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --terracotta: #B85C38;
+  --dusty-blue: #8BAAB8;
+  --deep-teal: #3D7A8A;
+  --sage-mist: #8FAF8F;
+  --forest-green: #5A7A5A;
+  --cream: #FAF5EB;
+  --dark: #1a1a18;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--cream);
+    color: var(--dark);
+    font-family: 'Jost', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-teal-400 text-cream-50 px-6 py-3 font-sans font-medium tracking-wide hover:bg-teal-500 transition-all duration-200 rounded-sm;
+  }
+
+  .btn-secondary {
+    @apply border border-teal-400 text-teal-400 px-6 py-3 font-sans font-medium tracking-wide hover:bg-teal-400 hover:text-cream-50 transition-all duration-200 rounded-sm;
+  }
+
+  .btn-terracotta {
+    @apply bg-terracotta-500 text-cream-50 px-6 py-3 font-sans font-medium tracking-wide hover:bg-terracotta-600 transition-all duration-200 rounded-sm;
+  }
+
+  .card {
+    @apply bg-white border border-cream-300 rounded-sm shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+
+  .section-title {
+    @apply font-display text-4xl md:text-5xl font-light text-forest-500 mb-2;
+  }
+
+  .section-subtitle {
+    @apply font-sans text-sm tracking-widest uppercase text-terracotta-500 mb-4;
+  }
+
+  .tag-pill {
+    @apply text-xs font-sans tracking-wide px-3 py-1 rounded-full bg-sage-100 text-forest-600 border border-sage-200;
+  }
+}
+
+/* Noise texture overlay */
+.texture-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Herb card hover */
+.herb-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.herb-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--sage-mist);
+  border-radius: 3px;
+}

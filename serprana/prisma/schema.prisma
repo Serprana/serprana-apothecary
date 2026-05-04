@@ -1,0 +1,63 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Herb {
+  id               String   @id @default(cuid())
+  name             String
+  spanishName      String?
+  latinName        String?
+  description      String
+  pricePerOunce    Float
+  inventoryOunces  Float    @default(0)
+  tags             String[]
+  energetics       String?
+  taste            String?
+  partsUsed        String?
+  contraindications String?
+  featured         Boolean  @default(false)
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model Recipe {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  tags        String[]
+  herbs       Json
+  instructions String
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Order {
+  id            String    @id @default(cuid())
+  customerName  String
+  customerEmail String
+  customerPhone String
+  type          String    // 'tea' | 'bulk' | 'mixed'
+  items         Json
+  total         Float
+  ownerShare    Float
+  storeShare    Float
+  teaBlend      TeaBlend?
+  createdAt     DateTime  @default(now())
+}
+
+model TeaBlend {
+  id          String @id @default(cuid())
+  orderId     String @unique
+  order       Order  @relation(fields: [orderId], references: [id])
+  herbs       Json
+  totalScoops Int
+}
