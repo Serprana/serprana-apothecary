@@ -15,7 +15,7 @@ export default function Header() {
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-12 h-12 relative flex-shrink-0">
               <img
-                src="/images/logo-black.svg"
+                src="/images/logo-black.png"
                 alt="Serprana Logo"
                 className="w-full h-full object-contain"
               />
