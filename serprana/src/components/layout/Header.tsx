@@ -15,14 +15,14 @@ export default function Header() {
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-12 h-12 relative flex-shrink-0">
               <img
-                src="/images/logo-black.png"
+                src="/images/logo-black.svg"
                 alt="Serprana Logo"
                 className="w-full h-full object-contain"
               />
             </div>
             <div>
               <div className="font-display text-xl font-semibold tracking-widest text-forest-600 uppercase">
-                Serprana
+                SERPRANA
               </div>
               <div className="font-sans text-xs tracking-wider text-terracotta-500 uppercase">
                 Apothecary
