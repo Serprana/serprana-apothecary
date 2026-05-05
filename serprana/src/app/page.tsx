@@ -33,7 +33,7 @@ export default async function HomePage() {
 
         <div className="relative max-w-6xl mx-auto px-4 py-20 md:py-32 text-center">
           <div className="mb-8 flex justify-center">
-            <img src="/images/logo-white.svg" alt="Serprana" className="w-28 h-28 object-contain opacity-90" />
+            <img src="/images/logo-white.svg" alt="SERPRANA" className="w-28 h-28 object-contain opacity-90" />
           </div>
 
           <p className="font-sans text-xs tracking-[0.4em] uppercase text-sage-300 mb-4">
@@ -41,7 +41,7 @@ export default async function HomePage() {
           </p>
 
           <h1 className="font-display text-5xl md:text-7xl font-light text-cream-100 mb-4 leading-tight">
-            Serprana<br />
+            SERPRANA<br />
             <span className="italic font-light text-sage-300">Apothecary</span>
           </h1>
 
