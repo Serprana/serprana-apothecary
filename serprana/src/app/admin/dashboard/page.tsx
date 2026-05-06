@@ -196,11 +196,17 @@ export default function AdminDashboard() {
     setSaving(true)
     const tags = (editRecipeForm.tagsString || '').split(',').map(t => t.trim()).filter(Boolean)
     const herbLines = (editRecipeForm.herbsString || '').split('\n').filter(Boolean)
-    const herbs = herbLines.map(line => {
-      const match = line.match(/^(\d+)\s+part\s+(.+?)(?:\s+\((.+)\))?$/)
-      if (match) return { parts: parseInt(match[1]), name: match[2].trim(), notes: match[3] || '' }
-      return { parts: 1, name: line.trim(), notes: '' }
-    })
+const herbs = herbLines.map(line => {
+  const match = line.match(/^(\d+)\s+parts?\s+(.+?)(?:\s+\((.+)\))?$/)
+  const notesMatch = line.match(/\(([^)]+)\)/)
+  const nameMatch = line.match(/^\d+\s+parts?\s+(.+?)(?:\s+\(|$)/)
+  const partsMatch = line.match(/^(\d+)/)
+  return {
+    parts: partsMatch ? parseInt(partsMatch[1]) : 1,
+    name: nameMatch ? nameMatch[1].trim() : line.trim(),
+    notes: notesMatch ? notesMatch[1].trim() : ''
+  }
+})
     await fetch(`/api/admin/recipes/${editingRecipe.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
