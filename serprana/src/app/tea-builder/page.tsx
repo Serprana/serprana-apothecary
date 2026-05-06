@@ -100,7 +100,7 @@ export default function TeaBuilderPage() {
   }, [herbs, activeFilter, search])
 
   const addHerb = (herb: Herb) => {
-    if (selectedHerbs.length >= 7) return
+    if (selectedHerbs.length >= 10) return
     if (selectedHerbs.find(h => h.herbId === herb.id)) return
     setSelectedHerbs(prev => [...prev, { herbId: herb.id, name: herb.name, scoops: 1 }])
   }
@@ -212,7 +212,7 @@ export default function TeaBuilderPage() {
               <div className="bg-white border border-cream-300 rounded-sm shadow-sm p-5 mb-4">
                 <div className="flex justify-between items-center mb-4">
                   <h2 className="font-display text-xl text-forest-600">Your Tea Blend</h2>
-                  <span className="font-sans text-xs text-forest-400">{selectedHerbs.length}/7 herbs</span>
+                  <span className="font-sans text-xs text-forest-400">{selectedHerbs.length}/10 herbs</span>
                 </div>
 
                 {selectedHerbs.length === 0 ? (
