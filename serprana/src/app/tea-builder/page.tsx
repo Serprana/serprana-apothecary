@@ -124,7 +124,7 @@ export default function TeaBuilderPage() {
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="font-sans text-xs tracking-[0.3em] uppercase text-teal-100 mb-2">Build Your Blend</p>
           <h1 className="font-display text-4xl font-light mb-2">Custom Tea Builder</h1>
-          <p className="font-sans text-sm text-teal-100">Choose up to 7 herbs · $15 flat rate · Prepared fresh for you</p>
+          <p className="font-sans text-sm text-teal-100">Choose as many herbs as you like · $17 flat rate · Prepared fresh for you</p>
           {recipeName && (
             <div className="mt-3 inline-block px-4 py-1 bg-white/20 rounded-sm">
               <p className="font-sans text-xs">Loaded from recipe: <span className="font-medium">{recipeName}</span></p>
@@ -175,7 +175,7 @@ export default function TeaBuilderPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {filteredHerbs.map((herb) => {
                   const isSelected = selectedHerbs.find(h => h.herbId === herb.id)
-                  const isFull = selectedHerbs.length >= 7 && !isSelected
+                  const isFull = false
                   return (
                     <button
                       key={herb.id}
