@@ -76,6 +76,6 @@ export const CONDITION_CATEGORIES = [
   { label: 'Spiritual & Sacred', icon: '🔮', tags: ['meditation', 'sacred', 'ceremonial', 'ritual', 'grounding'] },
 ]
 
-export const TEA_PRICE = 15
+export const TEA_PRICE = 17
 export const SCOOP_TO_OUNCE = 0.01
 export const MIN_BULK_OUNCES = 0.5
