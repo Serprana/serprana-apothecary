@@ -7,8 +7,8 @@ export async function POST(req: NextRequest) {
   const { customerName, customerEmail, customerPhone, type, items, total } = body
 
   // Calculate revenue split
-  const ownerShare = total * 0.75
-  const storeShare = total * 0.25
+  const ownerShare = total * 0.65
+  const storeShare = total * 0.35
 
   // Create order in a transaction with inventory deduction
   const order = await prisma.$transaction(async (tx) => {
