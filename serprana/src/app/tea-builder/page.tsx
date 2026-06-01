@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
+import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { TEA_PRICE, CONDITION_CATEGORIES } from '@/types'
 
@@ -19,6 +20,7 @@ interface TeaHerb {
 }
 
 export default function TeaBuilderPage() {
+  const { data: session } = useSession()
   const [herbs, setHerbs] = useState<Herb[]>([])
   const [filteredHerbs, setFilteredHerbs] = useState<Herb[]>([])
   const [selectedHerbs, setSelectedHerbs] = useState<TeaHerb[]>([])
@@ -26,9 +28,11 @@ export default function TeaBuilderPage() {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [recipeName, setRecipeName] = useState('')
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'unsaved'>('saved')
+  const [blendLoaded, setBlendLoaded] = useState(false)
 
+  // Load herbs
   useEffect(() => {
-    // Load herbs
     fetch('/api/herbs')
       .then(r => r.json())
       .then((data: Herb[]) => {
@@ -37,21 +41,25 @@ export default function TeaBuilderPage() {
         setLoading(false)
       })
 
-    // Check for pre-loaded recipe from URL
     const params = new URLSearchParams(window.location.search)
     const recipe = params.get('recipe')
     const herbsParam = params.get('herbs')
     const singleHerb = params.get('herb')
+    const savedParam = params.get('saved')
 
     if (recipe) setRecipeName(recipe)
 
-    if (herbsParam) {
-      // Format: "HerbName:parts,HerbName:parts"
+    if (savedParam) {
+      try {
+        const saved = JSON.parse(decodeURIComponent(savedParam))
+        setSelectedHerbs(saved)
+        setBlendLoaded(true)
+      } catch {}
+    } else if (herbsParam) {
       const preloaded = herbsParam.split(',').map(h => {
         const [name, partsStr] = h.split(':')
         return { name: decodeURIComponent(name), scoops: parseInt(partsStr) || 1 }
       })
-      // Will match after herbs load
       setTimeout(() => {
         fetch('/api/herbs')
           .then(r => r.json())
@@ -64,9 +72,7 @@ export default function TeaBuilderPage() {
             setSelectedHerbs(matched)
           })
       }, 100)
-    }
-
-    if (singleHerb && !herbsParam) {
+    } else if (singleHerb) {
       setTimeout(() => {
         fetch('/api/herbs')
           .then(r => r.json())
@@ -78,22 +84,65 @@ export default function TeaBuilderPage() {
     }
   }, [])
 
+  // Load saved blend from server when logged in (only on first load)
+  useEffect(() => {
+    if (session?.user && !blendLoaded) {
+      const params = new URLSearchParams(window.location.search)
+      const hasUrlHerbs = params.get('herbs') || params.get('herb') || params.get('saved')
+      
+      if (!hasUrlHerbs) {
+        fetch('/api/saved-blend')
+          .then(r => r.json())
+          .then(data => {
+            if (data.herbs && data.herbs.length > 0) {
+              setSelectedHerbs(data.herbs)
+            }
+            setBlendLoaded(true)
+          })
+      } else {
+        setBlendLoaded(true)
+      }
+    }
+  }, [session, blendLoaded])
+
+  // Auto-save blend when logged in
+  const saveBlend = useCallback(async (herbs: TeaHerb[]) => {
+    if (!session?.user) return
+    setSaveStatus('saving')
+    try {
+      await fetch('/api/saved-blend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ herbs }),
+      })
+      setSaveStatus('saved')
+    } catch {
+      setSaveStatus('unsaved')
+    }
+  }, [session])
+
+  // Debounced auto-save
+  useEffect(() => {
+    if (!session?.user || !blendLoaded) return
+    setSaveStatus('saving')
+    const timer = setTimeout(() => {
+      saveBlend(selectedHerbs)
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [selectedHerbs, session, blendLoaded, saveBlend])
+
   useEffect(() => {
     let filtered = herbs.filter(h => h.inventoryOunces > 0 && !h.tags.includes('not-for-tea'))
 
     if (activeFilter) {
       const cat = CONDITION_CATEGORIES.find(c => c.label === activeFilter)
       if (cat) {
-        filtered = filtered.filter(h =>
-          h.tags.some(t => cat.tags.includes(t))
-        )
+        filtered = filtered.filter(h => h.tags.some(t => cat.tags.includes(t)))
       }
     }
 
     if (search) {
-      filtered = filtered.filter(h =>
-        h.name.toLowerCase().includes(search.toLowerCase())
-      )
+      filtered = filtered.filter(h => h.name.toLowerCase().includes(search.toLowerCase()))
     }
 
     setFilteredHerbs(filtered)
@@ -115,7 +164,6 @@ export default function TeaBuilderPage() {
 
   const totalScoops = selectedHerbs.reduce((sum, h) => sum + h.scoops, 0)
   const isReady = selectedHerbs.length > 0
-
   const checkoutUrl = `/checkout?type=tea&herbs=${encodeURIComponent(JSON.stringify(selectedHerbs))}`
 
   return (
@@ -124,10 +172,24 @@ export default function TeaBuilderPage() {
         <div className="max-w-6xl mx-auto px-4 text-center">
           <p className="font-sans text-xs tracking-[0.3em] uppercase text-teal-100 mb-2">Build Your Blend</p>
           <h1 className="font-display text-4xl font-light mb-2">Custom Tea Builder</h1>
-          <p className="font-sans text-sm text-teal-100">Choose as many herbs as you like · $17 flat rate · Prepared fresh for you</p>
+          <p className="font-sans text-sm text-teal-100">Choose your herbs · $17 flat rate · Prepared fresh for you</p>
           {recipeName && (
             <div className="mt-3 inline-block px-4 py-1 bg-white/20 rounded-sm">
               <p className="font-sans text-xs">Loaded from recipe: <span className="font-medium">{recipeName}</span></p>
+            </div>
+          )}
+          {session?.user && (
+            <div className="mt-3 inline-block px-4 py-1 bg-white/10 rounded-sm">
+              <p className="font-sans text-xs text-teal-100">
+                {saveStatus === 'saving' ? '💾 Saving...' : saveStatus === 'saved' ? '✓ Blend auto-saved' : '⚠ Save failed — check connection'}
+              </p>
+            </div>
+          )}
+          {!session?.user && (
+            <div className="mt-3 inline-block px-4 py-1 bg-white/10 rounded-sm">
+              <p className="font-sans text-xs text-teal-100">
+                <Link href="/login" className="underline">Sign in</Link> to auto-save your blend
+              </p>
             </div>
           )}
         </div>
@@ -135,9 +197,8 @@ export default function TeaBuilderPage() {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid md:grid-cols-5 gap-8">
-          {/* Herb Selection - left 3 cols */}
+          {/* Herb Selection */}
           <div className="md:col-span-3">
-            {/* Filter by condition */}
             <div className="mb-5">
               <p className="font-sans text-xs text-forest-400 uppercase tracking-wide mb-2">Filter by concern</p>
               <div className="flex flex-wrap gap-2">
@@ -157,7 +218,6 @@ export default function TeaBuilderPage() {
               </div>
             </div>
 
-            {/* Search */}
             <div className="mb-5">
               <input
                 type="text"
@@ -168,24 +228,19 @@ export default function TeaBuilderPage() {
               />
             </div>
 
-            {/* Herbs grid */}
             {loading ? (
               <div className="text-center py-12 text-forest-400 font-sans text-sm">Loading herbs...</div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {filteredHerbs.map((herb) => {
                   const isSelected = selectedHerbs.find(h => h.herbId === herb.id)
-                  const isFull = false
                   return (
                     <button
                       key={herb.id}
                       onClick={() => isSelected ? removeHerb(herb.id) : addHerb(herb)}
-                      disabled={!!isFull}
                       className={`text-left p-3 border rounded-sm transition-all duration-150 ${
                         isSelected
                           ? 'bg-teal-50 border-teal-400 shadow-sm'
-                          : isFull
-                          ? 'opacity-40 cursor-not-allowed bg-white border-cream-200'
                           : 'bg-white border-cream-300 hover:border-teal-300 hover:shadow-sm'
                       }`}
                     >
@@ -205,7 +260,7 @@ export default function TeaBuilderPage() {
             )}
           </div>
 
-          {/* Tea Blend Summary - right 2 cols */}
+          {/* Tea Blend Summary */}
           <div className="md:col-span-2">
             <div className="sticky top-24">
               <div className="bg-white border border-cream-300 rounded-sm shadow-sm p-5 mb-4">
@@ -227,23 +282,17 @@ export default function TeaBuilderPage() {
                       <div key={h.herbId} className="flex items-center gap-3 p-2 bg-cream-50 border border-cream-200 rounded-sm">
                         <div className="flex-1 font-sans text-sm text-forest-600 min-w-0 truncate">{h.name}</div>
                         <div className="flex items-center gap-1 flex-shrink-0">
-                          <button
-                            onClick={() => updateScoops(h.herbId, h.scoops - 1)}
-                            className="w-6 h-6 flex items-center justify-center border border-cream-300 rounded-sm text-forest-500 hover:bg-cream-200 font-sans text-xs"
-                          >−</button>
+                          <button onClick={() => updateScoops(h.herbId, h.scoops - 1)}
+                            className="w-6 h-6 flex items-center justify-center border border-cream-300 rounded-sm text-forest-500 hover:bg-cream-200 font-sans text-xs">−</button>
                           <span className="font-sans text-sm w-6 text-center text-forest-600">{h.scoops}</span>
-                          <button
-                            onClick={() => updateScoops(h.herbId, h.scoops + 1)}
-                            className="w-6 h-6 flex items-center justify-center border border-cream-300 rounded-sm text-forest-500 hover:bg-cream-200 font-sans text-xs"
-                          >+</button>
+                          <button onClick={() => updateScoops(h.herbId, h.scoops + 1)}
+                            className="w-6 h-6 flex items-center justify-center border border-cream-300 rounded-sm text-forest-500 hover:bg-cream-200 font-sans text-xs">+</button>
                         </div>
                         <span className="font-sans text-xs text-teal-500 w-14 text-right flex-shrink-0">
                           {h.scoops} scoop{h.scoops !== 1 ? 's' : ''}
                         </span>
-                        <button
-                          onClick={() => removeHerb(h.herbId)}
-                          className="text-forest-300 hover:text-red-400 transition-colors font-sans text-xs flex-shrink-0"
-                        >✕</button>
+                        <button onClick={() => removeHerb(h.herbId)}
+                          className="text-forest-300 hover:text-red-400 transition-colors font-sans text-xs flex-shrink-0">✕</button>
                       </div>
                     ))}
                   </div>
@@ -268,16 +317,11 @@ export default function TeaBuilderPage() {
                 )}
               </div>
 
-              {/* Help */}
               <div className="bg-sage-50 border border-sage-200 p-4 rounded-sm text-center">
                 <p className="font-sans text-xs text-forest-500 mb-1">Not sure what to add?</p>
-                <Link href="/browse#concerns" className="font-sans text-xs text-teal-500">
-                  Browse by concern →
-                </Link>
+                <Link href="/browse#concerns" className="font-sans text-xs text-teal-500">Browse by concern →</Link>
                 <span className="font-sans text-xs text-forest-300 mx-2">or</span>
-                <Link href="/recipes" className="font-sans text-xs text-teal-500">
-                  start from a recipe →
-                </Link>
+                <Link href="/recipes" className="font-sans text-xs text-teal-500">start from a recipe →</Link>
               </div>
             </div>
           </div>
