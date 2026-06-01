@@ -34,7 +34,7 @@ export default function Header() {
             {session ? (
               <div className="flex items-center gap-3">
                 <Link href="/account" className="font-sans text-sm tracking-wide text-teal-500 hover:text-teal-600 transition-colors">
-                  👤 {session.user?.firstName || 'Account'}
+                  👤 {session.user?.name?.split(' ')[0] || 'Account'}
                 </Link>
               </div>
             ) : (
