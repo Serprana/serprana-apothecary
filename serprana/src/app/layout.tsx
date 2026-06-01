@@ -2,25 +2,24 @@ import type { Metadata } from 'next'
 import './globals.css'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
+import Providers from '@/components/Providers'
 
 export const metadata: Metadata = {
   title: 'Serprana Apothecary | Custom Herbal Teas & Remedies',
   description: 'Handcrafted herbal teas and bulk herbs. Custom blends for every body. Located inside Casa Venao Café, Playa Venao, Panama.',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col bg-cream-100">
-        <Header />
-        <main className="flex-1">
-          {children}
-        </main>
-        <Footer />
+        <Providers>
+          <Header />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </Providers>
       </body>
     </html>
   )
