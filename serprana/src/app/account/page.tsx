@@ -2,7 +2,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 import AccountClient from './AccountClient'
 
 export default async function AccountPage() {
@@ -31,7 +30,6 @@ export default async function AccountPage() {
           </h1>
         </div>
       </div>
-
       <div className="max-w-4xl mx-auto px-4 py-10">
         <AccountClient
           user={{ firstName: user.firstName, lastName: user.lastName, email: user.email }}
