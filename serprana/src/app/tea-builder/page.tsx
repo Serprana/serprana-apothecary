@@ -79,7 +79,7 @@ export default function TeaBuilderPage() {
   }, [])
 
   useEffect(() => {
-    let filtered = herbs.filter(h => h.inventoryOunces > 0)
+    let filtered = herbs.filter(h => h.inventoryOunces > 0 && !h.tags.includes('not-for-tea'))
 
     if (activeFilter) {
       const cat = CONDITION_CATEGORIES.find(c => c.label === activeFilter)
